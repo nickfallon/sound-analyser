@@ -1,0 +1,77 @@
+<html>
+    <head>
+        <style>
+            #bar {
+                position: fixed;
+
+
+                width: 100%;
+                height: 50%;
+                -webkit-transition: 0.1s ease all;
+            }
+            .p {
+                background-color: blue;
+                height: 0%;
+                width: 1px;
+
+                position: absolute;
+                bottom: 0px;
+            }
+        </style>
+    </head>
+<body>
+    <button onclick="start()">Click to start</button>
+    <audio id="audio" src="talk.mp3"></audio>
+    <div id="bar">
+        <div id="P10" class="p"></div>
+
+    </div>
+    <script>
+       function start() {
+            audioCtx = new AudioContext();
+
+            analyser = audioCtx.createAnalyser();
+            source = audioCtx.createMediaElementSource(audio);
+
+            source.connect(analyser);
+            analyser.connect(audioCtx.destination);
+
+            var x = 4096;
+
+            analyser.fftSize = x;
+            var frequencyData = new Uint8Array(analyser.frequencyBinCount);
+
+            var bardiv = document.getElementById('bar');
+            for (var i = 0; i < x; i++) {
+                var c = document.createElement('div');
+                c.id = 'P' + i;
+                c.className = 'p';
+                bardiv.appendChild(c);
+                frequencyData[i] = 1;
+            }
+
+            function renderFrame() {
+
+                analyser.getByteFrequencyData(frequencyData);
+
+                for (var i = 0; i < x; i++) {
+
+                    var h = (frequencyData[i] * 100) / 256;
+
+                    if (h == 0) {
+                        h = 1;
+                    }
+                    document.getElementById('P' + i).style.height = (h + "%");
+                    document.getElementById('P' + i).style.left = (i + "px");
+                }
+
+               // console.log(frequencyData);
+                requestAnimationFrame(renderFrame);
+            }
+            audio.pause();
+            audio.play();
+            renderFrame();
+        };
+    </script>
+</body>
+</html>
